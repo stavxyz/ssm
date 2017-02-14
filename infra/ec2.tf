@@ -12,6 +12,18 @@ variable "ami_name_regex" {
   default = "^ubuntu/images/hvm-ssd/ubuntu-xenial"
 }
 
+variable "user_data" {
+  # defaults to ubuntu for ssm agent
+  default = <<EOF
+#!/bin/bash
+cd /tmp			
+curl https://amazon-ssm-region.s3.amazonaws.com/latest/debian_amd64/amazon-ssm-agent.deb -o amazon-ssm-agent.deb
+dpkg -i amazon-ssm-agent.deb
+systemctl start amazon-ssm-agent
+EOF
+}
+
+
 variable "instance_type" {
   default = "t2.micro"
 }
@@ -62,6 +74,7 @@ resource "aws_instance" "ssm_instance" {
   ami = "${data.aws_ami.this.id}"
   instance_type = "${var.instance_type}"
   iam_instance_profile = "${aws_iam_instance_profile.ssm_instance_profile.id}"
+  user_data = "${var.user_data}"
 }
 
 output "ssm_ec2_instance_id" {
